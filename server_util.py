@@ -6,6 +6,8 @@ import time
 import uuid
 from typing import List
 
+import config
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,31 +25,16 @@ def is_server_running() -> (bool, str):
     return 'paper' in check_result, check_result
 
 
-last_log_line = 0
 last_log_size = 0
 
 
 def get_server_log() -> List[str]:
-    global last_log_line
     global last_log_size
 
     filename = 'logs/latest.log'
 
-    if last_log_size == 0:
-        last_log_size = os.path.getsize(filename)
-    else:
-        current_log_size = os.path.getsize(filename)
-        if current_log_size < last_log_size:
-            # log file is reset
-            last_log_size = current_log_size
-            last_log_line = 0
-
     with open(filename, 'r', encoding='utf-8') as f:
-        if last_log_line != 0:
-            for _ in range(last_log_line - 1):  # Skip the first (start_line - 1) lines
-                next(f)
         lines = f.readlines()
-        last_log_line += len(lines)
 
     lines = [x.strip() for x in lines if x.strip() != '']
 
@@ -114,7 +101,7 @@ def get_time_range(start_hour: int, start_minute: int, end_hour: int, end_minute
     return start, end
 
 
-next_check_time = None
+next_check_time = 0
 
 detect_server_lock = threading.Lock()
 
@@ -125,7 +112,7 @@ def detect_server(test: bool = False) -> dict:
 
     if test:
         random_id = uuid.uuid4().hex[:5]
-        logger.info('id', random_id)
+        logger.info(f'id: {random_id}')
 
     joined_count = 0
     left_count = 0
@@ -134,30 +121,22 @@ def detect_server(test: bool = False) -> dict:
     is_lag = False
     database_error = False
 
-    tolerance_range = 2
+    if time.time() < next_check_time:
+        if test:
+            logger.info(f'wait: {random_id}')
+        return {
+            'is_lag': is_lag,
+            'system_start_time': system_start_time,
+            'joined_count': joined_count,
+            'left_count': left_count,
+            'is_duplicate_uuid': is_duplicate_uuid,
+            'database_error': database_error}
+    next_check_time = time.time() + config.READ_LOG_TIME
 
-    if next_check_time is not None:
-        if time.time() < next_check_time:
-            next_check_time = time.time() + tolerance_range
-            if test:
-                logger.info('wait next check time', random_id)
-            return {'is_lag': is_lag,
-                    'system_start_time': system_start_time,
-                    'joined_count': joined_count,
-                    'left_count': left_count,
-                    'is_duplicate_uuid': is_duplicate_uuid,
-                    'database_error': database_error}
-
-    # logger.info('read server log')
     with detect_server_lock:
-        next_check_time = time.time() + tolerance_range
-        time.sleep(tolerance_range)
-
-        while time.time() < next_check_time:
-            time.sleep(int(tolerance_range / 10))
 
         if test:
-            logger.info('read file', random_id)
+            logger.info(f'read file: {random_id}')
         else:
             server_logs = get_server_log()
             for server_log in server_logs:
@@ -196,4 +175,10 @@ def get_logger(name: str):
 
 
 if __name__ == '__main__':
-    print(detect_server())
+    os.chdir(config.SERVER_ROOT)
+
+    logger = get_logger('test')
+
+    for i in range(25):
+        print(detect_server(True))
+        time.sleep(1)

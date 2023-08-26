@@ -14,6 +14,7 @@ for i in range(8):
 if SERVER_ROOT == '/':
     raise Exception('server.properties not found')
 
+READ_LOG_TIME = 10
 
 if __name__ == '__main__':
     print(SERVER_ROOT)
