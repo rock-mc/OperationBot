@@ -9,7 +9,7 @@ from watchdog.observers import Observer
 import server_cmd
 import server_func
 import server_util
-from discord import discord_bot
+import discord
 import config
 
 logger = server_util.get_logger(__name__)
@@ -46,8 +46,14 @@ class LogHandler(FileSystemEventHandler):
             server_cmd.stop('偵測到 lag 問題，伺服器重新啟動')
         if detect_log_result['database_error'] and not is_database_explode:
             is_database_explode = True
-            discord_bot.post(
-                content="資料庫爆炸了，<@694182416583098470> 請趕快處理")
+            # mention ops in discord
+            try:
+                if discord.enabled:
+                    discord.discord_bot.post(
+                        content=f"資料庫爆炸了，<@{config.DISCORD_OP_USER_ID}> 請趕快處理")
+            except Exception as e:
+                logger.error(e)
+
 
 
 wait_player_max_min = 10
