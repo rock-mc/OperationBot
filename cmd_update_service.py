@@ -1,16 +1,17 @@
 import os
+import subprocess
 import time
 
-import server_util
 import config
+import server_util
 
 logger = server_util.get_logger(__name__)
 
 os.chdir(config.SERVER_ROOT)
 
 if __name__ == '__main__':
-    os.system("kill $(ps aux | grep 'start_service.py' | grep -v grep | awk '{print $2}')")
-    time.sleep(3)
-    os.system('python3 operation_bot/cmd_start_service.py &')
+    subprocess.Popen("kill $(ps aux | grep 'cmd_start_service' | grep -v grep | awk '{print $2}')", shell=True)
+    time.sleep(1)
+    subprocess.Popen(f'python3 operation_bot/cmd_start_service.py', shell=True)
 
     logger.info('update service success')

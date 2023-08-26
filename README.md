@@ -15,11 +15,12 @@ Such as:
 - UUID of added entity already exists
 - Database connection error
 
+The server will automatically restart, clean up old database data, and attempt to locate new versions of server files for self-testing every Monday and Thursday.  
+Once successful, the new version of the server program will be adopted.
+
+
 ### cmd_stop_service
 This function will be responsible for stopping the server.
-
-### cmd_update_service
-This function will be responsible for updating for **Minecraft Operation Bot** without shutting down.
 
 ## How to use
 
@@ -90,3 +91,7 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
+
+## Features
+
+- [ ] Update **Minecraft Operation Bot** without restarting the server
