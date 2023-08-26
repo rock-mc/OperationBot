@@ -16,7 +16,6 @@ def send_server_command(command) -> None:
 def server_cmd(command) -> List[str]:
     logger.info(f'Execute command: {command}')
     send_server_command(command)
-    time.sleep(0.1)
 
 
 def is_server_running() -> (bool, str):

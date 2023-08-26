@@ -10,6 +10,7 @@ import server_cmd
 import server_func
 import server_util
 from discord import discord_bot
+import config
 
 logger = server_util.get_logger(__name__)
 
@@ -17,9 +18,7 @@ is_stopping = False
 is_wait_stop = False
 is_database_explode = False
 
-parent = os.path.dirname(os.path.abspath(__file__))
-parent = os.path.dirname(parent)
-os.chdir(parent)
+os.chdir(config.SERVER_ROOT)
 
 
 class LogHandler(FileSystemEventHandler):
@@ -80,6 +79,8 @@ if __name__ == '__main__':
     no_player_time = None
 
     run_clear_db_date = set()
+
+    server_cmd.say('磐石維運機器人 v ' + config.version + ' 啟動')
     while True:
         if not first_run:
             time.sleep(check_time_sec)
