@@ -95,10 +95,6 @@ if __name__ == '__main__':
 
             sys.exit()
 
-        if os.path.exists('/tmp/server_update'):
-            time.sleep(60)
-            continue
-
         server_running, _ = server_util.is_server_running()
         if server_running:
             if time.time() - check_time_start < check_server_status_time_sec:
@@ -127,7 +123,9 @@ if __name__ == '__main__':
         else:
             logger.info('The server is not running! start server.')
 
-            server_file = server_func.get_new_server_file()
-            server_cmd.start(server_file)
+            is_updated, server_file = server_func.get_new_server_file()
+
+            if not is_updated:
+                server_cmd.start(server_file)
 
             check_time_start = time.time()

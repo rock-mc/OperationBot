@@ -165,8 +165,6 @@ def detect_server(test: bool = False) -> dict:
                 if '>' in server_log:
                     continue
 
-                logger.info(server_log)
-
                 if 'Done' in server_log and 'For help' in server_log:
                     if system_start_time is None:
                         system_start_time = time.time()
@@ -194,8 +192,3 @@ def detect_server(test: bool = False) -> dict:
 
 if __name__ == '__main__':
     print(detect_server())
-
-    # discord = Discord(
-    #     url="https://discord.com/api/webhooks/1142384160711901195/JSqAdMSPdnCM8EjCjRJs8XKiJ7aNFZWhmYlevaX6OqFOB-QEcRukAEcGqlKuHMJ3c_b1")
-    # discord.post(
-    #     content="爆炸了，<@694182416583098470> 請趕快處理，<@&862517076320976917> <@&875221924937080852> 請協助安撫玩家 :D")
