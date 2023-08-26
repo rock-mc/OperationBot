@@ -2,7 +2,8 @@ import os
 
 version = '1.0.0'
 
-DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')
+DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK', None)
+DISCORD_OP_USER_ID = os.environ.get('DISCORD_OP_USER_ID', None)
 
 SERVER_ROOT = os.path.dirname(__file__)
 for i in range(8):

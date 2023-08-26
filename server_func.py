@@ -6,9 +6,9 @@ import time
 
 import requests
 
-import server_cmd
-from discord import discord_bot
 import config
+import discord
+import server_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +171,9 @@ def get_new_server_file():
         json.dump(server_version, f, indent=4)
 
     try:
-        discord_bot.post(content=f'<@694182416583098470> 伺服器版本更新：{current_server_file} -> {new_server_file}')
+        if discord.enabled:
+            discord.discord_bot.post(
+                content=f'<@694182416583098470> 伺服器版本更新：{current_server_file} -> {new_server_file}')
     except Exception as e:
         logger.error(e)
     return is_updated, new_server_file
