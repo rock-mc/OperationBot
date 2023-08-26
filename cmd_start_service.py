@@ -28,8 +28,6 @@ class LogHandler(FileSystemEventHandler):
         global is_wait_stop
         global is_database_explode
 
-        logger.info(f'log file modified: {event.src_path}')
-
         if not str(event.src_path).endswith('latest.log'):
             return
 

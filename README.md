@@ -51,7 +51,8 @@ cd $SCRIPTPATH
 [Optional] Next, you need to create a Discord Webhook.
 
 ```bash
-export DISCORD_WEBHOOK="https://discord.com/api/webhooks/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export DISCORD_WEBHOOK="https://discord.com/api/webhooks/xxxxx"
+export DISCORD_OP_USER_ID="xxxxxxxxxxxxxxxxxx"
 ```
 
 ### Run
