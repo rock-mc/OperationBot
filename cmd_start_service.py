@@ -1,5 +1,4 @@
 import datetime
-import logging
 import os
 import sys
 import time
@@ -8,14 +7,11 @@ from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 from watchdog.observers import Observer
 
 import server_cmd
-import config
 import server_func
 import server_util
 from discord import discord_bot
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s] %(message)s',
-                    datefmt='%m.%d %H:%M:%S')
-logger = logging.getLogger(__name__)
+logger = server_util.get_logger(__name__)
 
 is_stopping = False
 is_wait_stop = False

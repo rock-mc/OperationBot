@@ -190,5 +190,11 @@ def detect_server(test: bool = False) -> dict:
                 'database_error': database_error}
 
 
+def get_logger(name: str):
+    logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s',
+                        datefmt='%m.%d %H:%M:%S')
+    return logging.getLogger(name)
+
+
 if __name__ == '__main__':
     print(detect_server())
