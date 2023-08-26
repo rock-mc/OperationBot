@@ -15,6 +15,10 @@ Such as:
 - UUID of added entity already exists
 - Database connection error
 
+The server will automatically restart, clean up old database data, and attempt to locate new versions of server files for self-testing every Monday and Thursday.  
+Once successful, the new version of the server program will be adopted.
+
+
 ### cmd_stop_service
 This function will be responsible for stopping the server.
 
