@@ -5,17 +5,26 @@ import os
 import time
 from typing import Optional
 
-import server_util
 import config
+import server_util
 
 logger = logging.getLogger(__name__)
 
+SERVER_CLOSE = '/tmp/minecraft_server_close'
+SERVER_UPDATE = '/tmp/minecraft_server_update'
+
+command_list = [
+    SERVER_CLOSE,
+    SERVER_UPDATE,
+]
+
 
 def clear():
-    try:
-        os.remove('/tmp/server_close')
-    except FileNotFoundError:
-        pass
+    for cmd in command_list:
+        try:
+            os.remove(cmd)
+        except FileNotFoundError:
+            pass
 
 
 def say(msg: str):

@@ -4,14 +4,13 @@ import time
 
 import config
 import server_util
+import server_cmd
 
 logger = server_util.get_logger(__name__)
 
 os.chdir(config.SERVER_ROOT)
 
 if __name__ == '__main__':
-    subprocess.Popen("kill $(ps aux | grep 'cmd_start_service' | grep -v grep | awk '{print $2}')", shell=True)
-    time.sleep(1)
-    subprocess.Popen(f'python3 operation_bot/cmd_start_service.py', shell=True)
+    os.system(f'touch {server_cmd.SERVER_UPDATE}')
 
     logger.info('update service success')

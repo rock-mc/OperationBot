@@ -90,7 +90,7 @@ if __name__ == '__main__':
             time.sleep(check_time_sec)
         first_run = False
 
-        if os.path.exists('/tmp/server_close'):
+        if os.path.exists(server_cmd.SERVER_CLOSE):
             logger.info('stop service')
             server_cmd.stop('老大下指令關閉伺服器囉')
 
