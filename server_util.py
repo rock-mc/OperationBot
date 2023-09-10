@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 def send_server_command(command) -> None:
     os.system(f'screen -S rock-server -p 0 -X eval \'stuff "{command}"\\015\'')
+    time.sleep(0.1)
 
 
 def server_cmd(command) -> List[str]:
@@ -25,21 +26,22 @@ def is_server_running() -> (bool, str):
     return 'paper' in check_result, check_result
 
 
-last_log_size = 0
+last_log_index = 0
 
 
 def get_server_log() -> List[str]:
-    global last_log_size
+    global last_log_index
 
     filename = 'logs/latest.log'
 
     with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
-    lines = [x.strip() for x in lines if x.strip() != '']
+        if len(lines) < last_log_index:
+            last_log_index = 0
+        lines = lines[last_log_index:]
 
-    for line in lines:
-        logger.info(line)
+    lines = [x.strip() for x in lines if x.strip() != '']
 
     return lines
 
@@ -101,14 +103,11 @@ def get_time_range(start_hour: int, start_minute: int, end_hour: int, end_minute
     return start, end
 
 
-next_check_time = 0
-
 detect_server_lock = threading.Lock()
 
 
 def detect_server(test: bool = False) -> dict:
     global detect_server_lock
-    global next_check_time
 
     if test:
         random_id = uuid.uuid4().hex[:5]
@@ -121,20 +120,7 @@ def detect_server(test: bool = False) -> dict:
     is_lag = False
     database_error = False
 
-    if time.time() < next_check_time:
-        if test:
-            logger.info(f'wait: {random_id}')
-        return {
-            'is_lag': is_lag,
-            'system_start_time': system_start_time,
-            'joined_count': joined_count,
-            'left_count': left_count,
-            'is_duplicate_uuid': is_duplicate_uuid,
-            'database_error': database_error}
-    next_check_time = time.time() + config.READ_LOG_TIME
-
     with detect_server_lock:
-
         if test:
             logger.info(f'read file: {random_id}')
         else:

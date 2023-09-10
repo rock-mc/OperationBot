@@ -1,132 +1,85 @@
 import datetime
+import importlib
 import os
 import sys
 import time
+import traceback
+from types import ModuleType
+from typing import Optional, List
 
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent
-from watchdog.observers import Observer
-
-import server_cmd
-import server_func
-import server_util
-import discord
 import config
+import server_util
 
-logger = server_util.get_logger(__name__)
-
-is_stopping = False
-is_wait_stop = False
-is_database_explode = False
+# from server_service import LogHandler
 
 os.chdir(config.SERVER_ROOT)
 
-
-class LogHandler(FileSystemEventHandler):
-
-    def on_modified(self, event: FileModifiedEvent):
-        global is_stopping
-        global is_wait_stop
-        global is_database_explode
-
-        if not str(event.src_path).endswith('latest.log'):
-            return
-
-        if is_stopping:
-            if not is_wait_stop:
-                is_wait_stop = True
-                server_util.wait_server_stop()
-            return
-
-        detect_log_result = server_util.detect_server()
-        if False and detect_log_result['is_duplicate_uuid']:
-            server_cmd.stop('偵測到問題實體，伺服器重新啟動')
-        if detect_log_result['is_lag']:
-            server_cmd.stop('偵測到 lag 問題，伺服器重新啟動')
-        if detect_log_result['database_error'] and not is_database_explode:
-            is_database_explode = True
-            # mention ops in discord
-            try:
-                if discord.enabled:
-                    discord.discord_bot.post(
-                        content=f"資料庫爆炸了，<@{config.DISCORD_OP_USER_ID}> 請趕快處理")
-            except Exception as e:
-                logger.error(e)
-
-
-
-wait_player_max_min = 10
-check_time_sec = 10
-check_server_status_time_sec = 60
-
-backup_day = [
-    # Monday and friday
-    0, 4
-]
+logger = server_util.get_logger(__name__)
 
 if __name__ == '__main__':
 
-    # disable log observer
-    event_handler = LogHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path='logs', recursive=False)
-    observer.start()
+    service: Optional[ModuleType] = None
+    logger.info('磐石維運機器人 v ' + config.version + ' 啟動')
 
-    server_cmd.clear()
-
-    log_check = list()
-    log_count = None
-    check_time_start = time.time()
-    save_map = False
-    update_list = []
     first_run = True
 
-    no_player_time = None
+    next_check_service_time = 0
 
-    run_clear_db_date = set()
+    try:
+        server_cmd = importlib.import_module('server_cmd')
+        server_cmd.clear()
 
-    server_cmd.say('磐石維運機器人 v ' + config.version + ' 啟動')
+        service = importlib.import_module('server_service')
+        service.init()
+    except Exception as e:
+        logger.error(e)
+        traceback.print_exc(file=sys.stdout)
+        sys.exit()
+    else:
+        logger.info('service loaded')
+
+    checked_time: List[str] = []
+
     while True:
         if not first_run:
-            time.sleep(check_time_sec)
+            time.sleep(10)
         first_run = False
 
-        if os.path.exists(server_cmd.SERVER_CLOSE):
+        if server_cmd.check_command_exists(server_cmd.SERVER_CLOSE):
             logger.info('stop service')
             server_cmd.stop('老大下指令關閉伺服器囉')
 
             sys.exit()
 
-        server_running, _ = server_util.is_server_running()
-        if server_running:
-            if time.time() - check_time_start < check_server_status_time_sec:
-                continue
+        if server_cmd.check_command_exists(server_cmd.SERVER_UPDATE):
+            logger.info('update service')
+            server_cmd.say('老大下指令更新伺服器囉')
 
-            # if datetime.datetime.now().minute == 0:
-            #     command.say(
-            #         f'現在時間 {datetime.datetime.now().hour} 點 {datetime.datetime.now().minute} 分，磐石維運機器人 v {config.version} 關心您')
+            try:
+                new_server_cmd = importlib.reload(server_cmd)
+            except Exception as e:
+                logger.error(e)
+                server_cmd.say('server_cmd 更新失敗')
+            else:
+                server_cmd = new_server_cmd
+                server_cmd.say('server_cmd 更新完成')
 
-            check_time_start = time.time()
+            try:
+                new_service = importlib.reload(service)
+            except Exception as e:
+                logger.error(e)
+                server_cmd.say('service 更新失敗')
+            else:
+                service = new_service
+                server_cmd.say('service 更新完成')
 
-            start_time, end_time = server_util.get_time_range(5, 0, 5, 5)
+        service.check()
 
-            if server_util.is_in_time_range(start_time, end_time):
-                if datetime.datetime.today().weekday() in backup_day:
-                    server_cmd.backup_map()
+        current_time = datetime.datetime.now().strftime('%M')
 
-            start_time, end_time = server_util.get_time_range(5, 25, 5, 30)
+        if current_time not in checked_time:
+            checked_time.append(current_time)
+            while len(checked_time) > 10:
+                checked_time.pop(0)
 
-            today = datetime.date.today()
-            if server_util.is_in_time_range(start_time, end_time) and today not in run_clear_db_date:
-                run_clear_db_date.add(today)
-
-                server_cmd.clear_db()
-
-        else:
-            logger.info('The server is not running! start server.')
-
-            is_updated, server_file = server_func.get_new_server_file()
-
-            if not is_updated:
-                server_cmd.start(server_file)
-
-            check_time_start = time.time()
+            service.schedule()

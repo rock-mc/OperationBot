@@ -85,30 +85,30 @@ def backup_map(force: bool = False):
         os.system(f'mkdir -p {backup_folder_path}')
         os.system(f'rsync -avh {mc_root}/{backup_folder}/ {backup_folder_path}')
 
-    # delete old folder
-
-    # for day in range(8, 15):
-    #     old_day = datetime.datetime.now() - datetime.timedelta(days=day)
-    #     old_day_folder = old_day.strftime('%Y-%m-%d')
-    #     old_day_backup_path = f'{backup_root}/{old_day_folder}'
-    #
-    #     if not os.path.exists(old_day_backup_path):
-    #         continue
-    #
-    #     os.system(f'rm -r {old_day_backup_path}')
 
     os.system('sudo reboot')
     time.sleep(30)
 
 
 def clear_db():
-    server_util.server_cmd('co purge t:60d')
+    server_util.server_cmd(f'co purge t:{config.KEEP_LATEST_DB_DATA_DAYS}d')
 
 
 def start(server_file: str):
     logger.info(f'start server: {server_file}')
     os.system(f'screen -S rock-server -d -m sh run_server.sh {server_file}')
     time.sleep(10)
+
+
+def tps():
+    server_util.server_cmd('tps')
+
+
+def check_command_exists(cmd: str):
+    result = os.path.exists(cmd)
+    if result:
+        os.remove(cmd)
+    return result
 
 
 if __name__ == '__main__':
