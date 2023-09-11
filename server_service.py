@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+from typing import Optional
 
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 from watchdog.observers import Observer
@@ -14,7 +15,6 @@ import server_util
 logger = server_util.get_logger(__name__)
 
 is_stopping = False
-is_wait_stop = False
 is_database_explode = False
 
 os.chdir(config.SERVER_ROOT)
@@ -25,16 +25,13 @@ class LogHandler(FileSystemEventHandler):
 
     def on_modified(self, event: FileModifiedEvent):
         global is_stopping
-        global is_wait_stop
         global is_database_explode
 
         if not str(event.src_path).endswith('latest.log'):
             return
 
         if is_stopping:
-            if not is_wait_stop:
-                is_wait_stop = True
-                server_util.wait_server_stop()
+            server_util.wait_server_stop()
             return
 
         if time.time() < self.next_check_time:
@@ -43,12 +40,14 @@ class LogHandler(FileSystemEventHandler):
 
         server_cmd.tps()
 
-        detect_log_result = server_util.detect_server()
-        if False and detect_log_result['is_duplicate_uuid']:
+        server_status = server_util.get_server_status()
+        if False and server_status['is_duplicate_uuid']:
             server_cmd.stop('偵測到問題實體，伺服器重新啟動')
-        if detect_log_result['is_lag']:
+
+        if server_status['tps'][0] < config.TPS_LAG_THRESHOLD and server_status['tps'][1] < config.TPS_LAG_THRESHOLD:
+            # it means the server is lagging for 5 minutes
             server_cmd.stop('偵測到 lag 問題，伺服器重新啟動')
-        if detect_log_result['database_error'] and not is_database_explode:
+        if server_status['database_error'] and not is_database_explode:
             is_database_explode = True
             # mention ops in discord
             try:
@@ -67,12 +66,25 @@ backup_day = [
     0, 4
 ]
 
+observer: Optional[Observer] = None
+
 
 def init():
+    global observer
     event_handler = LogHandler()
     observer = Observer()
     observer.schedule(event_handler, path='logs', recursive=False)
     observer.start()
+
+
+def destroy():
+
+    global is_stopping
+
+    is_stopping = True
+
+    observer.stop()
+    observer.join()
 
 
 def check():

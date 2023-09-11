@@ -14,10 +14,7 @@ for i in range(8):
 if SERVER_ROOT == '/':
     raise Exception('server.properties not found')
 
-print(f'SERVER_ROOT: {SERVER_ROOT}')
-
 READ_LOG_TIME = 20
 KEEP_LATEST_DB_DATA_DAYS = 60
 
-if __name__ == '__main__':
-    print(SERVER_ROOT)
+TPS_LAG_THRESHOLD = 19

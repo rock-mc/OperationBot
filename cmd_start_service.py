@@ -10,15 +10,13 @@ from typing import Optional, List
 import config
 import server_util
 
-# from server_service import LogHandler
-
 os.chdir(config.SERVER_ROOT)
 
 logger = server_util.get_logger(__name__)
 
 if __name__ == '__main__':
 
-    service: Optional[ModuleType] = None
+    server_service: Optional[ModuleType] = None
     logger.info('磐石維運機器人 v ' + config.version + ' 啟動')
 
     first_run = True
@@ -29,8 +27,8 @@ if __name__ == '__main__':
         server_cmd = importlib.import_module('server_cmd')
         server_cmd.clear()
 
-        service = importlib.import_module('server_service')
-        service.init()
+        server_service = importlib.import_module('server_service')
+        server_service.init()
     except Exception as e:
         logger.error(e)
         traceback.print_exc(file=sys.stdout)
@@ -47,17 +45,23 @@ if __name__ == '__main__':
 
         if server_cmd.check_command_exists(server_cmd.SERVER_CLOSE):
             logger.info('stop service')
+
+            server_service.destroy()
+
             server_cmd.stop('老大下指令關閉伺服器囉')
 
             sys.exit()
 
         if server_cmd.check_command_exists(server_cmd.SERVER_UPDATE):
             logger.info('update service')
-            server_cmd.say('老大下指令更新伺服器囉')
+            server_cmd.say('老大下指令更新磐石機器人囉')
+
+            update_error = False
 
             try:
                 new_server_cmd = importlib.reload(server_cmd)
             except Exception as e:
+                update_error = True
                 logger.error(e)
                 server_cmd.say('server_cmd 更新失敗')
             else:
@@ -65,15 +69,25 @@ if __name__ == '__main__':
                 server_cmd.say('server_cmd 更新完成')
 
             try:
-                new_service = importlib.reload(service)
+                new_service = importlib.reload(server_service)
             except Exception as e:
+                update_error = True
                 logger.error(e)
                 server_cmd.say('service 更新失敗')
             else:
-                service = new_service
+                server_service = new_service
+
+                server_service.destroy()
+                server_service.init()
+
                 server_cmd.say('service 更新完成')
 
-        service.check()
+            if update_error:
+                server_cmd.say('磐石機器人更新失敗，請手動更新')
+            else:
+                server_cmd.say('磐石機器人更新完成')
+
+        server_service.check()
 
         current_time = datetime.datetime.now().strftime('%M')
 
@@ -82,4 +96,4 @@ if __name__ == '__main__':
             while len(checked_time) > 10:
                 checked_time.pop(0)
 
-            service.schedule()
+            server_service.schedule()

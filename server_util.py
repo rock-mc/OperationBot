@@ -1,9 +1,9 @@
 import datetime
 import logging
 import os
+import re
 import threading
 import time
-import uuid
 from typing import List
 
 import config
@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 def send_server_command(command) -> None:
     os.system(f'screen -S rock-server -p 0 -X eval \'stuff "{command}"\\015\'')
-    time.sleep(0.1)
+    time.sleep(0.01)
 
 
-def server_cmd(command) -> List[str]:
+def server_cmd(command) -> None:
     logger.info(f'Execute command: {command}')
     send_server_command(command)
 
@@ -106,12 +106,8 @@ def get_time_range(start_hour: int, start_minute: int, end_hour: int, end_minute
 detect_server_lock = threading.Lock()
 
 
-def detect_server(test: bool = False) -> dict:
+def get_server_status() -> dict:
     global detect_server_lock
-
-    if test:
-        random_id = uuid.uuid4().hex[:5]
-        logger.info(f'id: {random_id}')
 
     joined_count = 0
     left_count = 0
@@ -120,38 +116,40 @@ def detect_server(test: bool = False) -> dict:
     is_lag = False
     database_error = False
 
+    pattern = r'TPS from last 1m, 5m, 15m: (\d+\.\d+), (\d+\.\d+), (\d+\.\d+)'
+
     with detect_server_lock:
-        if test:
-            logger.info(f'read file: {random_id}')
-        else:
-            server_logs = get_server_log()
-            for server_log in server_logs:
-                if '>' in server_log:
-                    continue
+        server_logs = get_server_log()
+        for server_log in server_logs:
+            if '>' in server_log:
+                continue
 
-                if 'Done' in server_log and 'For help' in server_log:
-                    if system_start_time is None:
-                        system_start_time = time.time()
-                if 'joined the game' in server_log:
-                    joined_count += 1
-                if 'left the game' in server_log:
-                    left_count += 1
-                if 'UUID of added entity already exists' in server_log:
-                    is_duplicate_uuid = True
-                if 'Can\'t keep up!' in server_log:
-                    is_lag = True
-                if 'java.sql.SQLTransientConnectionException' in server_log:
-                    database_error = True
+            matches = re.findall(pattern, server_log)
+            if matches:
+                tps_numbers = [float(matches[0][i]) for i in range(3)]
 
-            if system_start_time is None:
-                next_check_time = time.time() + 10
+            if 'Done' in server_log and 'For help' in server_log:
+                if system_start_time is None:
+                    system_start_time = time.time()
 
-        return {'is_lag': is_lag,
-                'system_start_time': system_start_time,
-                'joined_count': joined_count,
-                'left_count': left_count,
-                'is_duplicate_uuid': is_duplicate_uuid,
-                'database_error': database_error}
+            if 'joined the game' in server_log:
+                joined_count += 1
+            if 'left the game' in server_log:
+                left_count += 1
+            if 'UUID of added entity already exists' in server_log:
+                is_duplicate_uuid = True
+            if 'Can\'t keep up!' in server_log:
+                is_lag = True
+            if 'java.sql.SQLTransientConnectionException' in server_log:
+                database_error = True
+
+        return {
+            'system_start_time': system_start_time,
+            'joined_count': joined_count,
+            'left_count': left_count,
+            'is_duplicate_uuid': is_duplicate_uuid,
+            'database_error': database_error,
+            'tps': tps_numbers}
 
 
 def get_logger(name: str):
@@ -166,5 +164,5 @@ if __name__ == '__main__':
     logger = get_logger('test')
 
     for i in range(25):
-        print(detect_server(True))
+        print(get_server_status(True))
         time.sleep(1)
