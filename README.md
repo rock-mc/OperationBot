@@ -8,24 +8,25 @@ NOTE: Currently only supports Linux.
 **Minecraft Operation Bot** supports the following commands:
 
 ### cmd_start_service
-This function will be responsible for keeping the server online at all times.  
-And give orders in case of emergency.
-Such as:
-- Server lag
-- UUID of added entity already exists
-- Database connection error
+Activate the server service, which has the following features.
 
-The server will automatically restart, clean up old database data, and attempt to locate new versions of server files for self-testing every Monday and Thursday.  
-Once successful, the new version of the server program will be adopted.
+Such as:
+- Restart server while the server is lagging
+- Backup server map data
+- Automatically update server program
+- Send a message to the Discord channel when the server is started or stopped
 
 
 ### cmd_stop_service
 This function will be responsible for stopping the server.
 
+### cmd_update_service
+This function will be responsible for applying the new version **Minecraft Operation Bot** without restarting the server.
+
 ## How to use
 
 ### Requirements
-- Python 3.6 or higher
+- Python 3.8 or higher
 
 ### Installation
 
@@ -94,4 +95,4 @@ WantedBy=multi-user.target
 
 ## Features
 
-- [ ] Update **Minecraft Operation Bot** without restarting the server
+- [x] Update **Minecraft Operation Bot** without restarting the server
