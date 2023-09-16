@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 def send_server_command(command) -> None:
     os.system(f'screen -S rock-server -p 0 -X eval \'stuff "{command}"\\015\'')
-    time.sleep(0.01)
 
 
 def server_cmd(command) -> None:
@@ -127,6 +126,7 @@ def get_server_status() -> dict:
 
             matches = re.findall(online_pattern, server_log)
             if matches:
+                print(matches)
                 online_player_count = int(matches[0][0])
 
             if 'Done' in server_log and 'For help' in server_log:

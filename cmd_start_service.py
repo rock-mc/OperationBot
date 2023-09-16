@@ -26,7 +26,14 @@ if __name__ == '__main__':
     try:
         server_cmd = importlib.import_module('server_cmd')
         server_cmd.clear()
+    except Exception as e:
+        logger.error(e)
+        traceback.print_exc(file=sys.stdout)
+        sys.exit()
+    else:
+        logger.info('server_cmd is loaded')
 
+    try:
         server_service = importlib.import_module('server_service')
         server_service.init()
     except Exception as e:
@@ -34,7 +41,7 @@ if __name__ == '__main__':
         traceback.print_exc(file=sys.stdout)
         sys.exit()
     else:
-        logger.info('service loaded')
+        logger.info('server_service is loaded')
 
     checked_time: List[str] = []
 

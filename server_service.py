@@ -31,7 +31,6 @@ class LogHandler(FileSystemEventHandler):
             return
 
         if is_stopping:
-            server_util.wait_server_stop()
             return
 
         if time.time() < self.next_check_time:
@@ -41,8 +40,9 @@ class LogHandler(FileSystemEventHandler):
         server_cmd.tps()
         server_cmd.online()
 
-        server_status = server_util.get_server_status()
+        time.sleep(1)
 
+        server_status = server_util.get_server_status()
         if server_status['tps'][0] < config.TPS_LAG_THRESHOLD:
             server_cmd.say('偵測到 lag 問題，請停止飛行、使用大量紅石等動作')
 
@@ -82,6 +82,7 @@ def init():
 def destroy():
 
     global is_stopping
+    global observer
 
     is_stopping = True
 

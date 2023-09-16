@@ -14,7 +14,7 @@ for i in range(8):
 if SERVER_ROOT == '/':
     raise Exception('server.properties not found')
 
-READ_LOG_TIME = 20
+READ_LOG_TIME = 60
 KEEP_LATEST_DB_DATA_DAYS = 60
 
 TPS_LAG_THRESHOLD = 19
