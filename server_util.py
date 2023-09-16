@@ -10,6 +10,11 @@ import config
 
 logger = logging.getLogger(__name__)
 
+SECOND = 1
+MINUTE = 60 * SECOND
+HOUR = 60 * MINUTE
+DAY = 24 * HOUR
+
 
 def send_server_command(command) -> None:
     os.system(f'screen -S rock-server -p 0 -X eval \'stuff "{command}"\\015\'')
