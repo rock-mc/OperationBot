@@ -39,14 +39,16 @@ class LogHandler(FileSystemEventHandler):
         self.next_check_time = time.time() + config.READ_LOG_TIME
 
         server_cmd.tps()
+        server_cmd.online()
 
         server_status = server_util.get_server_status()
-        if False and server_status['is_duplicate_uuid']:
-            server_cmd.stop('偵測到問題實體，伺服器重新啟動')
+
+        if server_status['tps'][0] < config.TPS_LAG_THRESHOLD:
+            server_cmd.say('偵測到 lag 問題，請停止飛行、使用大量紅石等動作')
 
         if server_status['tps'][0] < config.TPS_LAG_THRESHOLD and server_status['tps'][1] < config.TPS_LAG_THRESHOLD:
             # it means the server is lagging for 5 minutes
-            server_cmd.stop('偵測到 lag 問題，伺服器重新啟動')
+            server_cmd.stop('持續偵測到 lag 問題，伺服器重新啟動')
         if server_status['database_error'] and not is_database_explode:
             is_database_explode = True
             # mention ops in discord

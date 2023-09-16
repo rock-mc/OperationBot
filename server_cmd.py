@@ -104,6 +104,10 @@ def tps():
     server_util.server_cmd('tps')
 
 
+def online():
+    server_util.server_cmd('online')
+
+
 def check_command_exists(cmd: str):
     result = os.path.exists(cmd)
     if result:

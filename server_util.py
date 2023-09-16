@@ -109,14 +109,11 @@ detect_server_lock = threading.Lock()
 def get_server_status() -> dict:
     global detect_server_lock
 
-    joined_count = 0
-    left_count = 0
-    is_duplicate_uuid = False
     system_start_time = None
-    is_lag = False
     database_error = False
 
-    pattern = r'TPS from last 1m, 5m, 15m: (\d+\.\d+), (\d+\.\d+), (\d+\.\d+)'
+    tps_pattern = r'TPS from last 1m, 5m, 15m: (\d+\.\d+), (\d+\.\d+), (\d+\.\d+)'
+    online_pattern = r'目前有 (\d+) 個玩家在線'
 
     with detect_server_lock:
         server_logs = get_server_log()
@@ -124,32 +121,27 @@ def get_server_status() -> dict:
             if '>' in server_log:
                 continue
 
-            matches = re.findall(pattern, server_log)
+            matches = re.findall(tps_pattern, server_log)
             if matches:
                 tps_numbers = [float(matches[0][i]) for i in range(3)]
+
+            matches = re.findall(online_pattern, server_log)
+            if matches:
+                online_player_count = int(matches[0][0])
 
             if 'Done' in server_log and 'For help' in server_log:
                 if system_start_time is None:
                     system_start_time = time.time()
 
-            if 'joined the game' in server_log:
-                joined_count += 1
-            if 'left the game' in server_log:
-                left_count += 1
-            if 'UUID of added entity already exists' in server_log:
-                is_duplicate_uuid = True
-            if 'Can\'t keep up!' in server_log:
-                is_lag = True
             if 'java.sql.SQLTransientConnectionException' in server_log:
                 database_error = True
 
         return {
             'system_start_time': system_start_time,
-            'joined_count': joined_count,
-            'left_count': left_count,
-            'is_duplicate_uuid': is_duplicate_uuid,
             'database_error': database_error,
-            'tps': tps_numbers}
+            'tps': tps_numbers,
+            'online_player_count': online_player_count
+        }
 
 
 def get_logger(name: str):
@@ -164,5 +156,5 @@ if __name__ == '__main__':
     logger = get_logger('test')
 
     for i in range(25):
-        print(get_server_status(True))
+        print(get_server_status())
         time.sleep(1)

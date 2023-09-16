@@ -180,7 +180,7 @@ def get_new_server_file():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s] %(message)s',
+    logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s',
                         datefmt='%m.%d %H:%M:%S')
     logger = logging.getLogger(__name__)
 
