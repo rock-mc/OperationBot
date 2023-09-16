@@ -87,7 +87,7 @@ After=network.target
 WorkingDirectory=THIS_VALUE_WILL_REPLACE_WITH_MCHOME
 ExecStart=/usr/bin/python3 THIS_VALUE_WILL_REPLACE_WITH_MCHOME/operation_bot/cmd_start_service.py
 ExecStop=/usr/bin/python3 THIS_VALUE_WILL_REPLACE_WITH_MCHOME/operation_bot/cmd_stop_service.py
-Restart=always
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
