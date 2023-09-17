@@ -1,5 +1,6 @@
 import datetime
 import os
+import subprocess
 import time
 from typing import Optional
 
@@ -125,6 +126,8 @@ def check():
                 no_net_time = time.time()
             elif time.time() - no_net_time > config.WAIT_NETWORK_MINUTES * server_util.MINUTE:
                 server_cmd.stop('連線狀態: ConnectionError')
+                subprocess.run(["shutdown", "-s"])
+
 
 
 run_clear_db_date = set()
