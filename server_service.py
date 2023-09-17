@@ -98,19 +98,12 @@ last_net_status = None
 
 
 def check():
-    global no_net_time
-    server_running, _ = server_util.is_server_running()
-    if not server_running:
 
-        logger.info('The server is not running! start server.')
-
-        is_updated, server_file = server_func.get_new_server_file()
-
-        if not is_updated:
-            server_cmd.start(server_file)
-
-    if config.ENABLE_CHECK_NETWORK:
+    if not config.ENABLE_CHECK_NETWORK:
+        is_net_ok = True
+    else:
         global last_net_status
+        global no_net_time
         is_net_ok = check_network_status()
 
         if is_net_ok:
@@ -131,6 +124,18 @@ def check():
 
                 sys.exit()
 
+    if not is_net_ok:
+        logger.info('The network is not ok, skip check server status.')
+    else:
+        server_running, _ = server_util.is_server_running()
+        if not server_running:
+
+            logger.info('The server is not running! start server.')
+
+            is_updated, server_file = server_func.get_new_server_file()
+
+            if not is_updated:
+                server_cmd.start(server_file)
 
 
 run_clear_db_date = set()
