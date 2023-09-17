@@ -131,7 +131,6 @@ def get_server_status() -> dict:
 
             matches = re.findall(online_pattern, server_log)
             if matches:
-                print(matches)
                 online_player_count = int(matches[0][0])
 
             if 'Done' in server_log and 'For help' in server_log:
