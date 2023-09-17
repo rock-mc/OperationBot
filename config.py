@@ -1,4 +1,5 @@
 import os
+import warnings
 
 version = '1.0.1'
 
@@ -27,4 +28,4 @@ for i in range(8):
     SERVER_ROOT = os.path.dirname(SERVER_ROOT)
 
 if SERVER_ROOT == '/':
-    raise Exception('server.properties not found')
+    warnings.warn("server.properties is not found", Warning)

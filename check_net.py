@@ -1,8 +1,9 @@
-import logging
 import platform
 import subprocess
 import threading
 import time
+
+import server_util
 
 
 def ping_ip(ip_address, results):
@@ -42,9 +43,7 @@ def check_network_status():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s',
-                        datefmt='%m.%d %H:%M:%S')
-    logger = logging.getLogger(__name__)
+    logger = server_util.get_logger(__name__)
     last_state = None
 
     wait_time = 2
