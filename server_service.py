@@ -92,6 +92,7 @@ def destroy():
 
 
 no_net_time = 0
+last_net_status = None
 
 
 def check():
@@ -107,13 +108,18 @@ def check():
             server_cmd.start(server_file)
 
     if config.ENABLE_CHECK_NETWORK:
+        global last_net_status
         is_net_ok = check_network_status()
 
         if is_net_ok:
             no_net_time = 0
-            logger.info('連線狀態: 正常')
+            if last_net_status is None or not last_net_status:
+                logger.info('連線狀態: 正常')
+                last_net_status = True
         else:
-            logger.info('連線狀態: ConnectionError')
+            if last_net_status is None or last_net_status:
+                last_net_status = False
+                logger.info('連線狀態: ConnectionError')
 
             if no_net_time == 0:
                 no_net_time = time.time()
