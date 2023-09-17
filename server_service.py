@@ -106,18 +106,19 @@ def check():
         if not is_updated:
             server_cmd.start(server_file)
 
-    is_net_ok = check_network_status()
+    if config.ENABLE_CHECK_NETWORK:
+        is_net_ok = check_network_status()
 
-    if is_net_ok:
-        no_net_time = 0
-        logger.info('連線狀態: 正常')
-    else:
-        logger.info('連線狀態: ConnectionError')
+        if is_net_ok:
+            no_net_time = 0
+            logger.info('連線狀態: 正常')
+        else:
+            logger.info('連線狀態: ConnectionError')
 
-        if no_net_time == 0:
-            no_net_time = time.time()
-        elif time.time() - no_net_time > 5 * server_util.MINUTE:
-            server_cmd.stop('連線狀態: ConnectionError')
+            if no_net_time == 0:
+                no_net_time = time.time()
+            elif time.time() - no_net_time > config.WAIT_NETWORK_MINUTES * server_util.MINUTE:
+                server_cmd.stop('連線狀態: ConnectionError')
 
 
 run_clear_db_date = set()
