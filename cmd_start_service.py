@@ -94,13 +94,13 @@ if __name__ == '__main__':
             else:
                 server_cmd.say('磐石機器人更新完成')
 
-        server_service.check()
-
+        # check schedule time every minute
         current_time = datetime.datetime.now().strftime('%M')
-
         if current_time not in checked_time:
             checked_time.append(current_time)
             while len(checked_time) > 10:
                 checked_time.pop(0)
 
             server_service.schedule()
+
+        server_service.check()

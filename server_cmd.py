@@ -72,8 +72,6 @@ def backup_map(force: bool = False):
         return
     os.system(f'touch {backup_path}/{date_mark}')
 
-    stop('伺服器即將開始備份，準備關閉伺服器', count_down_sec=30)
-
     # rsync -auvz world/ /data/backup/qq/world/
 
     os.system(f'mkdir -p {backup_path}')
@@ -84,10 +82,6 @@ def backup_map(force: bool = False):
         # print(backup_world_path)
         os.system(f'mkdir -p {backup_folder_path}')
         os.system(f'rsync -avh {mc_root}/{backup_folder}/ {backup_folder_path}')
-
-
-    os.system('sudo reboot')
-    time.sleep(30)
 
 
 def clear_db():

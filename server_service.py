@@ -67,8 +67,10 @@ wait_player_max_min = 10
 check_server_status_time_sec = 60
 
 backup_day = [
-    # Monday and friday
-    0, 4
+    # Monday
+    0,
+    # Friday
+    4
 ]
 
 observer: Optional[Observer] = None
@@ -145,14 +147,6 @@ def schedule():
     global run_clear_db_date
 
     start_time, end_time = server_util.get_time_range(
-        5, 0,
-        5, 5)
-
-    if server_util.is_in_time_range(start_time, end_time):
-        if datetime.datetime.today().weekday() in backup_day:
-            server_cmd.backup_map()
-
-    start_time, end_time = server_util.get_time_range(
         5, 25,
         5, 30)
 
@@ -161,3 +155,12 @@ def schedule():
         run_clear_db_date.add(today)
 
         server_cmd.clear_db()
+
+    start_time, end_time = server_util.get_time_range(
+        5, 0,
+        5, 5)
+
+    if server_util.is_in_time_range(start_time, end_time):
+        if datetime.datetime.today().weekday() in backup_day:
+            server_cmd.stop('伺服器即將開始備份，準備關閉伺服器', count_down_sec=30)
+            server_cmd.backup_map()
