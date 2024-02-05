@@ -1,10 +1,9 @@
-import datetime
 import os
-import subprocess
 import sys
 import time
 from typing import Optional
 
+import schedule
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 from watchdog.observers import Observer
 
@@ -63,16 +62,6 @@ class LogHandler(FileSystemEventHandler):
                 logger.error(e)
 
 
-wait_player_max_min = 10
-check_server_status_time_sec = 60
-
-backup_day = [
-    # Monday
-    0,
-    # Friday
-    4
-]
-
 observer: Optional[Observer] = None
 
 
@@ -83,9 +72,13 @@ def init():
     observer.schedule(event_handler, path='logs', recursive=False)
     observer.start()
 
+    schedule.every().monday.at("05:00").do(server_cmd.backup_map)
+    schedule.every().friday.at("05:00").do(server_cmd.backup_map)
+
+    schedule.every().day.at("05:25").do(server_cmd.clear_db)
+
 
 def destroy():
-
     global is_stopping
     global observer
 
@@ -94,13 +87,14 @@ def destroy():
     observer.stop()
     observer.join()
 
+    schedule.clear()
+
 
 no_net_time = 0
 last_net_status = None
 
 
 def check():
-
     if not config.ENABLE_CHECK_NETWORK:
         is_net_ok = True
     else:
@@ -122,7 +116,7 @@ def check():
                 no_net_time = time.time()
             elif time.time() - no_net_time > config.WAIT_NETWORK_MINUTES * server_util.MINUTE:
                 server_cmd.stop('連線狀態: ConnectionError')
-                subprocess.run(["sudo", "shutdown", "-h", "now"])
+                os.system('sudo shutdown -h now')
 
                 sys.exit()
 
@@ -140,27 +134,5 @@ def check():
                 server_cmd.start(server_file)
 
 
-run_clear_db_date = set()
-
-
-def schedule():
-    global run_clear_db_date
-
-    start_time, end_time = server_util.get_time_range(
-        5, 25,
-        5, 30)
-
-    today = datetime.date.today()
-    if server_util.is_in_time_range(start_time, end_time) and today not in run_clear_db_date:
-        run_clear_db_date.add(today)
-
-        server_cmd.clear_db()
-
-    start_time, end_time = server_util.get_time_range(
-        5, 0,
-        5, 5)
-
-    if server_util.is_in_time_range(start_time, end_time):
-        if datetime.datetime.today().weekday() in backup_day:
-            server_cmd.stop('伺服器即將開始備份，準備關閉伺服器', count_down_sec=30)
-            server_cmd.backup_map()
+def run_pending():
+    schedule.run_pending()

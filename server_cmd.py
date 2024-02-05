@@ -59,6 +59,8 @@ def stop(reason: str, count_down_sec: int = 10):
 
 
 def backup_map(force: bool = False):
+    stop('伺服器即將開始備份，準備關閉伺服器', count_down_sec=30)
+
     backup_root = '/data/backup'
     mc_root = config.SERVER_ROOT
 

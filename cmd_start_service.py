@@ -101,6 +101,6 @@ if __name__ == '__main__':
             while len(checked_time) > 10:
                 checked_time.pop(0)
 
-            server_service.schedule()
+            server_service.run_pending()
 
         server_service.check()

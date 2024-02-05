@@ -1,7 +1,7 @@
 import os
 import warnings
 
-version = '1.0.1'
+version = '1.0.2'
 
 DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK', None)
 DISCORD_OP_USER_ID = os.environ.get('DISCORD_OP_USER_ID', None)
