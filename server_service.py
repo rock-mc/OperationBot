@@ -72,11 +72,6 @@ def init():
     observer.schedule(event_handler, path='logs', recursive=False)
     observer.start()
 
-    schedule.every().monday.at("05:00").do(server_cmd.backup_map)
-    schedule.every().friday.at("05:00").do(server_cmd.backup_map)
-
-    schedule.every().day.at("05:25").do(server_cmd.clear_db)
-
 
 def destroy():
     global is_stopping
@@ -86,8 +81,6 @@ def destroy():
 
     observer.stop()
     observer.join()
-
-    schedule.clear()
 
 
 no_net_time = 0

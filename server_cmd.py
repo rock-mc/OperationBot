@@ -10,11 +10,11 @@ import server_util
 
 logger = logging.getLogger(__name__)
 
-SERVER_CLOSE = '/tmp/minecraft_server_close'
+SERVER_STOP = '/tmp/minecraft_server_stop'
 SERVER_UPDATE = '/tmp/minecraft_server_update'
 
 command_list = [
-    SERVER_CLOSE,
+    SERVER_STOP,
     SERVER_UPDATE,
 ]
 
